@@ -1,0 +1,38 @@
+rm(list = ls())
+
+# call library
+library(plyr)
+
+# set working directory and list of file names 
+setwd("C:/Users/lionel/Documents/Projects/001_EColiStartUp/Code")
+files_full <- list.files("D:/Data to analyse/35C/35_m9-1inlet43outt0001xy01/CSV", 
+                         full.names=TRUE)
+files_name <- list.files("D:/Data to analyse/35C/35_m9-1inlet43outt0001xy01/CSV",
+                         full.names=F)
+
+# construct of required vectors
+tmp <- vector(mode = "list", length = length(files_full))
+Mean <- c()
+Sdtdv <- c()
+nb <- length(files_full)
+
+# calculation of the local means
+for (i in seq_along(files_full)) {
+  tmp[[i]] <- read.csv(files_full[[i]], header=T, sep="\t")
+  Mean[[i]] <- round(mean(tmp[[i]]$x.channel))
+}
+
+# binding of all the data
+output <- do.call(rbind, tmp)
+tmpcor <- c()
+
+
+# group all channel and export new corrected csv file
+for (i in 1:nb) {
+  tmpcor[[i]] <- subset(output, 
+                        x.channel <= Mean[[i]] + 30 & 
+                        x.channel >= Mean[[i]] - 30)
+  tmpcor[[i]] <- arrange( tmpcor[[i]], Image.nb, y)
+  name <- paste("corrected", sep="_", files_name[[i]])
+  write.csv(tmpcor[[i]], file = name)
+}
